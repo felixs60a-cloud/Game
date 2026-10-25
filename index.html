@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buku Belanja Harian</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: kalendar bulan (Isnin dahulu) di kiri, panel nota hari terpilih di kanan; bertindan di telefon */
+:root {
+  --bg: #eef3f0;
+  --surface: #ffffff;
+  --ink: #12302a;
+  --muted: #5b726b;
+  --line: #d3dfda;
+  --accent: #d99a1e;        /* kunyit */
+  --accent-ink: #2a1c00;
+  --brand: #1d5c4f;         /* hijau daun pandan tua */
+  --brand-soft: #dcebe5;
+  --danger: #b4412f;
+  --today: #fff4d9;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --f-num: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1a17; --surface: #15241f; --ink: #e4efea; --muted: #93aaa2; --line: #2a3d37;
+    --accent: #f0b440; --accent-ink: #231700; --brand: #7fcab6; --brand-soft: #1d3a32;
+    --danger: #ef8b78; --today: #33290f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1a17; --surface: #15241f; --ink: #e4efea; --muted: #93aaa2; --line: #2a3d37;
+  --accent: #f0b440; --accent-ink: #231700; --brand: #7fcab6; --brand-soft: #1d3a32;
+  --danger: #ef8b78; --today: #33290f; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+header h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+header h1 span { color: var(--brand); }
+.month-total { text-align: right; }
+.label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.month-total .num { font-size: 1.6rem; font-weight: 700; }
+
+.notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--brand-soft); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; }
+.notice button { background: none; border: 1px solid var(--brand); color: var(--brand); border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 0.85rem; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.cal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.cal-head h2 { font-size: 1.3rem; font-weight: 600; }
+.nav { display: flex; gap: 6px; }
+.nav button { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; min-width: 38px; height: 38px; padding: 0 10px; font-weight: 600; }
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.dow { text-align: center; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 0; }
+.dow.wkend { color: var(--danger); }
+.day {
+  position: relative; border: 1px solid transparent; background: var(--bg); border-radius: 9px;
+  min-height: 64px; padding: 6px 5px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; text-align: left;
+}
+.day:hover { border-color: var(--line); }
+.day .d { font-weight: 700; font-size: 0.95rem; }
+.day .amt { font-family: var(--f-num); font-size: 0.66rem; color: var(--brand); font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.day.has { background: var(--brand-soft); }
+.day.today { background: var(--today); }
+.day.today .d::after { content: "•"; color: var(--accent); margin-left: 3px; }
+.day.sel { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+.day.blank { visibility: hidden; }
+.cal-foot { display: flex; justify-content: space-between; margin-top: 12px; font-size: 0.85rem; color: var(--muted); }
+.cal-foot button { background: none; border: none; color: var(--brand); font-weight: 600; padding: 0; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 16px; scroll-margin-top: 16px; }
+.panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.panel-head h2 { font-size: 1.45rem; font-weight: 800; line-height: 1.1; }
+.panel-head .date { color: var(--muted); font-size: 0.9rem; }
+.day-total { text-align: right; flex-shrink: 0; }
+.day-total .num { font-size: 1.25rem; font-weight: 700; color: var(--brand); }
+
+.list { list-style: none; margin: 0; padding: 0; display: grid; }
+.list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; border-top: 1px dashed var(--line); }
+.list li:first-child { border-top: none; }
+.item-main { min-width: 0; }
+.item-title { font-weight: 600; overflow-wrap: anywhere; }
+.item-note { color: var(--muted); font-size: 0.88rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chip { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); margin-right: 6px; }
+.item-side { text-align: right; display: grid; gap: 4px; justify-items: end; }
+.item-side .num { font-weight: 700; }
+.acts { display: flex; gap: 4px; }
+.acts button { background: none; border: none; font-size: 0.78rem; color: var(--muted); padding: 2px 4px; text-decoration: underline; }
+.acts button.del { color: var(--danger); }
+.empty { color: var(--muted); font-size: 0.92rem; padding: 6px 0; }
+
+form { display: grid; gap: 10px; background: var(--bg); border-radius: 12px; padding: 14px; }
+form h3 { margin: 0; font-family: var(--f-display); font-size: 1rem; font-weight: 600; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 10px; }
+@media (max-width: 380px) { .row { grid-template-columns: minmax(0, 1fr); } }
+label { display: grid; gap: 4px; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+input, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; width: 100%; }
+textarea { resize: vertical; min-height: 64px; }
+.money { position: relative; }
+.money span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-family: var(--f-num); color: var(--muted); font-size: 0.85rem; pointer-events: none; }
+.money input { padding-left: 38px; font-family: var(--f-num); }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.cats button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; }
+.cats button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--surface); }
+.form-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: none; border-radius: 10px; padding: 11px 18px; font-weight: 700; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: none; border: 1px solid var(--line); }
+.err { color: var(--danger); font-size: 0.85rem; min-height: 1.2em; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; }
+
+.confirm { display: flex; gap: 6px; align-items: center; font-size: 0.78rem; }
+.confirm button { border: none; border-radius: 6px; padding: 3px 8px; font-weight: 700; font-size: 0.78rem; }
+.confirm .yes { background: var(--danger); color: var(--surface); }
+.confirm .no { background: var(--bg); }
+@media (prefers-reduced-motion: no-preference) { .day { transition: background .15s, border-color .15s; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="label">Rekod perbelanjaan</div>
+      <h1>Buku <span>Belanja</span> Harian</h1>
+    </div>
+    <div class="month-total">
+      <div class="label" id="monthLabel">Jumlah bulan ini</div>
+      <div class="num" id="monthTotal">RM 0.00</div>
+    </div>
+  </header>
+
+  <div class="notice" id="sampleNotice" hidden>
+    <span>Ini <strong>data contoh</strong> supaya anda nampak cara aplikasi berfungsi.</span>
+    <button type="button" id="clearSample">Padam data contoh</button>
+  </div>
+
+  <div class="main">
+    <section class="cal" aria-label="Kalendar">
+      <div class="cal-head">
+        <h2 id="calTitle">Bulan</h2>
+        <div class="nav">
+          <button type="button" id="prevM" aria-label="Bulan sebelum">‹</button>
+          <button type="button" id="todayBtn">Hari ini</button>
+          <button type="button" id="nextM" aria-label="Bulan seterusnya">›</button>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="cal-foot">
+        <span>Tekan mana-mana tarikh untuk tulis nota.</span>
+      </div>
+    </section>
+
+    <section class="panel" id="panel" aria-live="polite">
+      <div class="panel-head">
+        <div>
+          <h2 id="dayName">Isnin</h2>
+          <div class="date" id="dayDate"></div>
+        </div>
+        <div class="day-total">
+          <div class="label">Jumlah hari</div>
+          <div class="num" id="dayTotal">RM 0.00</div>
+        </div>
+      </div>
+
+      <ul class="list" id="list"></ul>
+
+      <form id="form" novalidate>
+        <h3 id="formTitle">Tambah nota perbelanjaan</h3>
+        <div class="row">
+          <label for="fItem">Perkara
+            <input id="fItem" type="text" maxlength="80" placeholder="cth. Nasi lemak + teh tarik" autocomplete="off">
+          </label>
+          <label for="fAmt">Jumlah
+            <span class="money"><span>RM</span><input id="fAmt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></span>
+          </label>
+        </div>
+        <div>
+          <div class="label" style="margin-bottom:6px">Kategori</div>
+          <div class="cats" id="cats"></div>
+        </div>
+        <label for="fNote">Nota (pilihan)
+          <textarea id="fNote" maxlength="500" placeholder="cth. Sarapan dengan kawan sekerja di gerai depan pejabat"></textarea>
+        </label>
+        <div class="err" id="err"></div>
+        <div class="form-acts">
+          <button type="submit" class="btn primary" id="saveBtn">Simpan nota</button>
+          <button type="button" class="btn ghost" id="cancelEdit" hidden>Batal</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  const HARI = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
+  const HARI_PENDEK = ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"];
+  const BULAN = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+  const KATEGORI = ["Makan", "Pengangkutan", "Barang dapur", "Bil", "Belanja", "Lain-lain"];
+  const KEY = "bukuBelanja.v1";
+
+  const $ = (id) => document.getElementById(id);
+  const pad = (n) => String(n).padStart(2, "0");
+  const keyOf = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  const rm = (n) => "RM " + n.toLocaleString("ms-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const sum = (arr) => arr.reduce((s, e) => s + (Number(e.amt) || 0), 0);
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  let store = { sample: false, days: {} };
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) { store = JSON.parse(raw); return; }
+    } catch (e) {}
+    seed();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+  function seed() {
+    const t = new Date();
+    const add = (offset, items) => {
+      const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() - offset);
+      store.days[keyOf(d)] = items.map((i) => ({ id: uid(), ...i, sample: true }));
+    };
+    add(0, [
+      { item: "Nasi lemak + teh tarik", amt: 7.5, cat: "Makan", note: "Sarapan di gerai depan pejabat" },
+      { item: "Tambah nilai Touch 'n Go", amt: 50, cat: "Pengangkutan", note: "" }
+    ]);
+    add(1, [{ item: "Barang dapur mingguan", amt: 86.4, cat: "Barang dapur", note: "Beras 5kg, telur, sayur, ayam" }]);
+    add(3, [
+      { item: "Bil elektrik", amt: 112.3, cat: "Bil", note: "Bayar melalui aplikasi" },
+      { item: "Roti canai", amt: 4.2, cat: "Makan", note: "" }
+    ]);
+    add(5, [{ item: "Minyak kereta RON95", amt: 40, cat: "Pengangkutan", note: "" }]);
+    store.sample = true;
+    save();
+  }
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let view = new Date(today.getFullYear(), today.getMonth(), 1);
+  let selected = new Date(today);
+  let selCat = KATEGORI[0];
+  let editingId = null;
+  let confirmId = null;
+
+  function entries(k) { return store.days[k] || []; }
+
+  function renderCal() {
+    const y = view.getFullYear(), m = view.getMonth();
+    $("calTitle").textContent = BULAN[m] + " " + y;
+    $("monthLabel").textContent = "Jumlah " + BULAN[m] + " " + y;
+    const grid = $("grid");
+    grid.innerHTML = "";
+    HARI_PENDEK.forEach((h, i) => {
+      const el = document.createElement("div");
+      el.className = "dow" + (i >= 5 ? " wkend" : "");
+      el.textContent = h;
+      grid.appendChild(el);
+    });
+    const first = new Date(y, m, 1);
+    const lead = (first.getDay() + 6) % 7; // Isnin = 0
+    for (let i = 0; i < lead; i++) {
+      const b = document.createElement("div"); b.className = "day blank"; grid.appendChild(b);
+    }
+    const daysIn = new Date(y, m + 1, 0).getDate();
+    let monthSum = 0;
+    for (let d = 1; d <= daysIn; d++) {
+      const date = new Date(y, m, d);
+      const k = keyOf(date);
+      const total = sum(entries(k));
+      monthSum += total;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "day" + (total > 0 ? " has" : "") +
+        (date.getTime() === today.getTime() ? " today" : "") +
+        (date.getTime() === selected.getTime() ? " sel" : "");
+      btn.setAttribute("aria-label", HARI[date.getDay()] + " " + d + " " + BULAN[m] + (total ? ", " + rm(total) : ""));
+      btn.innerHTML = '<span class="d">' + d + '</span>' + (total ? '<span class="amt">' + total.toFixed(2) + '</span>' : "");
+      btn.addEventListener("click", () => selectDay(date, true));
+      grid.appendChild(btn);
+    }
+    $("monthTotal").textContent = rm(monthSum);
+    $("sampleNotice").hidden = !store.sample;
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  function renderPanel() {
+    const k = keyOf(selected);
+    const list = entries(k);
+    $("dayName").textContent = HARI[selected.getDay()];
+    $("dayDate").textContent = selected.getDate() + " " + BULAN[selected.getMonth()] + " " + selected.getFullYear() +
+      (selected.getTime() === today.getTime() ? " · Hari ini" : "");
+    $("dayTotal").textContent = rm(sum(list));
+    const ul = $("list");
+    if (!list.length) {
+      ul.innerHTML = '<li class="empty">Tiada perbelanjaan lagi untuk hari ' + HARI[selected.getDay()] + '. Tulis nota pertama di bawah.</li>';
+      return;
+    }
+    ul.innerHTML = list.map((e) => {
+      const acts = confirmId === e.id
+        ? '<span class="confirm">Padam? <button type="button" class="yes" data-yes="' + e.id + '">Ya</button><button type="button" class="no" data-no="1">Tidak</button></span>'
+        : '<span class="acts"><button type="button" data-edit="' + e.id + '">Ubah</button><button type="button" class="del" data-del="' + e.id + '">Padam</button></span>';
+      return '<li><div class="item-main"><div class="item-title"><span class="chip">' + esc(e.cat) + '</span>' + esc(e.item) + '</div>' +
+        (e.note ? '<div class="item-note">' + esc(e.note) + '</div>' : "") +
+        '</div><div class="item-side"><span class="num">' + rm(Number(e.amt)) + '</span>' + acts + '</div></li>';
+    }).join("");
+  }
+
+  function renderCats() {
+    $("cats").innerHTML = KATEGORI.map((c) =>
+      '<button type="button" aria-pressed="' + (c === selCat) + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>').join("");
+  }
+
+  function resetForm() {
+    editingId = null;
+    $("fItem").value = ""; $("fAmt").value = ""; $("fNote").value = "";
+    $("err").textContent = "";
+    $("formTitle").textContent = "Tambah nota perbelanjaan";
+    $("saveBtn").textContent = "Simpan nota";
+    $("cancelEdit").hidden = true;
+    selCat = KATEGORI[0]; renderCats();
+  }
+
+  function selectDay(date, scroll) {
+    selected = new Date(date);
+    confirmId = null;
+    resetForm();
+    renderCal(); renderPanel();
+    if (scroll && window.matchMedia("(max-width: 820px)").matches) {
+      $("panel").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 1800);
+  }
+
+  $("cats").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-cat]"); if (!b) return;
+    selCat = b.dataset.cat; renderCats();
+  });
+
+  $("list").addEventListener("click", (ev) => {
+    const k = keyOf(selected);
+    const t = ev.target;
+    if (t.dataset.del) { confirmId = t.dataset.del; renderPanel(); return; }
+    if (t.dataset.no) { confirmId = null; renderPanel(); return; }
+    if (t.dataset.yes) {
+      store.days[k] = entries(k).filter((e) => e.id !== t.dataset.yes);
+      if (!store.days[k].length) delete store.days[k];
+      confirmId = null;
+      if (editingId === t.dataset.yes) resetForm();
+      save(); renderCal(); renderPanel(); toast("Nota dipadam");
+      return;
+    }
+    if (t.dataset.edit) {
+      const e = entries(k).find((x) => x.id === t.dataset.edit); if (!e) return;
+      editingId = e.id;
+      $("fItem").value = e.item; $("fAmt").value = e.amt; $("fNote").value = e.note || "";
+      selCat = e.cat; renderCats();
+      $("formTitle").textContent = "Ubah nota";
+      $("saveBtn").textContent = "Simpan perubahan";
+      $("cancelEdit").hidden = false;
+      $("fItem").focus();
+    }
+  });
+
+  $("cancelEdit").addEventListener("click", resetForm);
+
+  $("form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const item = $("fItem").value.trim();
+    const amt = parseFloat($("fAmt").value);
+    const note = $("fNote").value.trim();
+    if (!item) { $("err").textContent = "Tulis apa yang dibeli, contohnya \"Makan tengah hari\"."; $("fItem").focus(); return; }
+    if (!(amt >= 0) || !isFinite(amt)) { $("err").textContent = "Masukkan jumlah dalam RM, contohnya 12.50."; $("fAmt").focus(); return; }
+    const k = keyOf(selected);
+    const list = entries(k).slice();
+    const rec = { item, amt: Math.round(amt * 100) / 100, cat: selCat, note };
+    if (editingId) {
+      const i = list.findIndex((e) => e.id === editingId);
+      if (i >= 0) list[i] = { ...list[i], ...rec, sample: false };
+    } else {
+      list.push({ id: uid(), ...rec });
+    }
+    store.days[k] = list;
+    const wasEdit = !!editingId;
+    save(); resetForm(); renderCal(); renderPanel();
+    toast(wasEdit ? "Perubahan disimpan" : "Nota disimpan");
+  });
+
+  $("clearSample").addEventListener("click", () => {
+    Object.keys(store.days).forEach((k) => {
+      store.days[k] = store.days[k].filter((e) => !e.sample);
+      if (!store.days[k].length) delete store.days[k];
+    });
+    store.sample = false;
+    save(); renderCal(); renderPanel(); toast("Data contoh dipadam");
+  });
+
+  $("prevM").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); });
+  $("nextM").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); });
+  $("todayBtn").addEventListener("click", () => { view = new Date(today.getFullYear(), today.getMonth(), 1); selectDay(today, false); });
+
+  load();
+  renderCats();
+  renderCal();
+  renderPanel();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Buku nota dengan cincin, garisan dan syiling kunyit -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#F7FAF8"
+        android:pathData="M36,32h36a4,4 0,0 1,4 4v38a4,4 0,0 1,-4 4h-36a4,4 0,0 1,-4 -4v-38a4,4 0,0 1,4 -4z"/>
+    <path android:fillColor="#D99A1E"
+        android:pathData="M36,32h36a4,4 0,0 1,4 4v6h-44v-6a4,4 0,0 1,4 -4z"/>
+    <path android:fillColor="#12302A"
+        android:pathData="M43,28h3v9h-3z M62,28h3v9h-3z"/>
+    <path android:fillColor="#B8CCC4"
+        android:pathData="M39,50h22v3h-22z M39,58h18v3h-18z M39,66h14v3h-14z"/>
+    <path android:fillColor="#D99A1E"
+        android:pathData="M67,67m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"/>
+    <path android:fillColor="#12302A"
+        android:pathData="M65.5,61.5h3v11h-3z"/>
+</vector>

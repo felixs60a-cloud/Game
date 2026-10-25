@@ -1,0 +1,53 @@
+name: Bina app Android
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["index.html", "android/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Sediakan kunci tandatangan
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+
+      - name: Bina APK ujian dan AAB keluaran
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug bundleRelease
+
+      - name: Muat naik APK ujian (pasang terus di telefon)
+        uses: actions/upload-artifact@v4
+        with:
+          name: buku-belanja-apk-ujian
+          path: android/app/build/outputs/apk/debug/*.apk
+
+      - name: Muat naik AAB untuk Google Play
+        uses: actions/upload-artifact@v4
+        with:
+          name: buku-belanja-aab-${{ env.HAS_KEYSTORE == 'true' && 'bertandatangan' || 'TIDAK-bertandatangan' }}
+          path: android/app/build/outputs/bundle/release/*.aab

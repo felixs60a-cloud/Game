@@ -82,6 +82,20 @@ header h1 span { color: var(--brand); }
 .sheet-nav strong { font-family: var(--f-display); font-size: 1.1rem; font-weight: 600; }
 .sheet-nav .num { display: block; color: var(--brand); font-weight: 700; font-size: 0.95rem; text-align: center; }
 .sheet-nav button { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; width: 38px; height: 38px; font-weight: 700; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 12px; padding: 3px; background: var(--surface); }
+.seg button { border: none; background: none; border-radius: 9px; padding: 9px 8px; font-weight: 700; font-size: 0.9rem; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--brand); color: var(--surface); }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.stat .num { display: block; font-weight: 700; font-size: 1.05rem; margin-top: 2px; }
+.stat small { color: var(--muted); font-size: 0.8rem; }
+.mrow { display: grid; grid-template-columns: 5.5em minmax(0, 1fr) auto; align-items: center; gap: 10px; background: none; border: none; padding: 5px 0; text-align: left; width: 100%; font-size: 0.92rem; }
+.mrow .nm { font-weight: 600; }
+.mrow .bar { display: block; grid-column: auto; height: 8px; }
+.mrow .num { font-weight: 700; min-width: 6.5em; text-align: right; }
+.mrow.zero { color: var(--muted); }
+.mrow.zero .num { font-weight: 500; }
+.mrow.top .bar i { background: var(--brand); }
 .sec { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; }
 .sec h3 { margin: 0; font-family: var(--f-display); font-size: 1rem; font-weight: 600; }
 .catrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; font-size: 0.92rem; }
@@ -277,10 +291,14 @@ textarea { resize: vertical; min-height: 64px; }
       </div>
       <button type="button" class="close" id="closeRec" data-i18n-aria="close" aria-label="Tutup">×</button>
     </div>
+    <div class="seg" role="group" data-i18n-aria="viewMode" aria-label="Paparan rekod">
+      <button type="button" data-mode="month" aria-pressed="true" data-i18n="monthly">Bulanan</button>
+      <button type="button" data-mode="year" aria-pressed="false" data-i18n="yearly">Tahunan</button>
+    </div>
     <div class="sheet-nav">
-      <button type="button" id="recPrev" data-i18n-aria="prevMonth" aria-label="Bulan sebelum">‹</button>
+      <button type="button" id="recPrev" aria-label="Bulan sebelum">‹</button>
       <div><strong id="recMonth"></strong><span class="num" id="recTotal"></span></div>
-      <button type="button" id="recNext" data-i18n-aria="nextMonth" aria-label="Bulan seterusnya">›</button>
+      <button type="button" id="recNext" aria-label="Bulan seterusnya">›</button>
     </div>
     <div id="recBody"></div>
   </div>
@@ -335,6 +353,17 @@ textarea { resize: vertical; min-height: 64px; }
       byCat: "Ikut kategori",
       byDate: "Ikut tarikh",
       open: "Buka",
+      monthly: "Bulanan",
+      yearly: "Tahunan",
+      viewMode: "Paparan rekod",
+      byMonth: "Ikut bulan",
+      recSubYear: (n, m) => n + " nota dalam " + m + " bulan",
+      recEmptyYear: (y) => "Belum ada perbelanjaan direkod untuk tahun " + y + ". Tutup halaman ini dan tekan mana-mana tarikh pada kalendar untuk mula.",
+      highest: "Bulan tertinggi",
+      avg: "Purata sebulan",
+      avgNote: (m) => "daripada " + m + " bulan ada rekod",
+      prevYear: "Tahun sebelum",
+      nextYear: "Tahun seterusnya",
       days: ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"],
       dow: ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"],
       months: ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"],
@@ -385,6 +414,17 @@ textarea { resize: vertical; min-height: 64px; }
       byCat: "By category",
       byDate: "By date",
       open: "Open",
+      monthly: "Monthly",
+      yearly: "Yearly",
+      viewMode: "Record view",
+      byMonth: "By month",
+      recSubYear: (n, m) => n + (n === 1 ? " note" : " notes") + " across " + m + (m === 1 ? " month" : " months"),
+      recEmptyYear: (y) => "No expenses recorded for " + y + " yet. Close this page and tap any date on the calendar to start.",
+      highest: "Highest month",
+      avg: "Monthly average",
+      avgNote: (m) => "over " + m + (m === 1 ? " month" : " months") + " with records",
+      prevYear: "Previous year",
+      nextYear: "Next year",
       days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
       dow: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -650,9 +690,21 @@ textarea { resize: vertical; min-height: 64px; }
     toast(wasEdit ? t().changesSaved : t().noteSaved);
   });
 
-  // ---- Rekod perbelanjaan (senarai sebulan) ----
+  // ---- Rekod perbelanjaan (bulanan / tahunan) ----
+  let recMode = "month";
+  function catSection(L, byCat, total) {
+    const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    const max = cats[0][1] || 1;
+    return '<section class="sec"><h3>' + L.byCat + '</h3>' + cats.map(([c, a]) =>
+      '<div class="catrow"><span class="nm">' + esc(catLabel(c)) + '</span><span class="num">' + rm(a) + ' <small style="color:var(--muted);font-weight:500">' + Math.round(a / total * 100) + '%</small></span>' +
+      '<div class="bar"><i style="width:' + Math.max(2, a / max * 100).toFixed(1) + '%"></i></div></div>').join("") + '</section>';
+  }
   function renderRec() {
     const L = t();
+    document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === recMode)));
+    $("recPrev").setAttribute("aria-label", recMode === "year" ? L.prevYear : L.prevMonth);
+    $("recNext").setAttribute("aria-label", recMode === "year" ? L.nextYear : L.nextMonth);
+    if (recMode === "year") return renderYear(L);
     const y = view.getFullYear(), m = view.getMonth();
     const prefix = y + "-" + pad(m + 1) + "-";
     const keys = Object.keys(store.days).filter((k) => k.startsWith(prefix) && store.days[k].length).sort().reverse();
@@ -669,11 +721,6 @@ textarea { resize: vertical; min-height: 64px; }
       $("recBody").innerHTML = '<div class="sec"><p class="empty" style="margin:0">' + esc(L.recEmpty(monthName(y, m))) + '</p></div>';
       return;
     }
-    const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-    const max = cats[0][1] || 1;
-    const catHtml = cats.map(([c, a]) =>
-      '<div class="catrow"><span class="nm">' + esc(catLabel(c)) + '</span><span class="num">' + rm(a) + ' <small style="color:var(--muted);font-weight:500">' + Math.round(a / total * 100) + '%</small></span>' +
-      '<div class="bar"><i style="width:' + Math.max(2, a / max * 100).toFixed(1) + '%"></i></div></div>').join("");
     const dayHtml = keys.map((k) => {
       const [yy, mm, dd] = k.split("-").map(Number);
       const d = new Date(yy, mm - 1, dd);
@@ -681,8 +728,43 @@ textarea { resize: vertical; min-height: 64px; }
       return '<div class="dgroup"><button type="button" class="dhead" data-goto="' + k + '"><span>' + L.days[d.getDay()] + ', ' + dd + ' ' + L.monthsShort[mm - 1] + '<small>' + L.open + '</small></span><span class="num">' + rm(sum(list)) + '</span></button>' +
         list.map((e) => '<div class="dline"><span><span class="chip">' + esc(catLabel(e.cat)) + '</span>' + esc(e.item) + '</span><span class="num">' + rm(Number(e.amt)) + '</span></div>').join("") + '</div>';
     }).join("");
-    $("recBody").innerHTML = '<div style="display:grid;gap:18px"><section class="sec"><h3>' + L.byCat + '</h3>' + catHtml + '</section>' +
+    $("recBody").innerHTML = '<div style="display:grid;gap:18px">' + catSection(L, byCat, total) +
       '<section class="sec"><h3>' + L.byDate + '</h3>' + dayHtml + '</section></div>';
+  }
+  function renderYear(L) {
+    const y = view.getFullYear();
+    const months = new Array(12).fill(0);
+    const byCat = {};
+    let total = 0, count = 0;
+    Object.keys(store.days).forEach((k) => {
+      if (!k.startsWith(y + "-")) return;
+      const mi = Number(k.slice(5, 7)) - 1;
+      store.days[k].forEach((e) => {
+        const a = Number(e.amt) || 0; total += a; count++;
+        months[mi] += a; byCat[e.cat] = (byCat[e.cat] || 0) + a;
+      });
+    });
+    const active = months.filter((a) => a > 0).length;
+    $("recMonth").textContent = String(y);
+    $("recTotal").textContent = rm(total);
+    $("recSub").textContent = count ? L.recSubYear(count, active) : L.noNotes;
+    if (!count) {
+      $("recBody").innerHTML = '<div class="sec"><p class="empty" style="margin:0">' + esc(L.recEmptyYear(y)) + '</p></div>';
+      return;
+    }
+    const max = Math.max(...months);
+    const top = months.indexOf(max);
+    const stats = '<div class="stats">' +
+      '<div class="stat"><div class="label">' + L.highest + '</div><span class="num">' + rm(max) + '</span><small>' + L.months[top] + '</small></div>' +
+      '<div class="stat"><div class="label">' + L.avg + '</div><span class="num">' + rm(total / active) + '</span><small>' + L.avgNote(active) + '</small></div></div>';
+    const monthHtml = months.map((a, i) =>
+      '<button type="button" class="mrow' + (a ? "" : " zero") + (i === top ? " top" : "") + '" data-month="' + i + '">' +
+      '<span class="nm">' + L.monthsShort[i] + '</span>' +
+      '<span class="bar"><i style="width:' + (a ? Math.max(2, a / max * 100).toFixed(1) : 0) + '%"></i></span>' +
+      '<span class="num">' + (a ? rm(a) : "\u2014") + '</span></button>').join("");
+    $("recBody").innerHTML = '<div style="display:grid;gap:18px">' + stats +
+      '<section class="sec"><h3>' + L.byMonth + '</h3><div>' + monthHtml + '</div></section>' +
+      catSection(L, byCat, total) + '</div>';
   }
   let lastFocus = null;
   function openRec() {
@@ -704,9 +786,27 @@ textarea { resize: vertical; min-height: 64px; }
   $("openRec").addEventListener("click", openRec);
   $("closeRec").addEventListener("click", closeRec);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("sheet").hidden) closeRec(); });
-  $("recPrev").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); renderRec(); });
-  $("recNext").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); renderRec(); });
+  function shiftRec(dir) {
+    view = recMode === "year"
+      ? new Date(view.getFullYear() + dir, view.getMonth(), 1)
+      : new Date(view.getFullYear(), view.getMonth() + dir, 1);
+    renderCal(); renderRec(); $("sheet").scrollTop = 0;
+  }
+  $("recPrev").addEventListener("click", () => shiftRec(-1));
+  $("recNext").addEventListener("click", () => shiftRec(1));
+  document.querySelector(".seg").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-mode]");
+    if (!b || b.dataset.mode === recMode) return;
+    recMode = b.dataset.mode; renderRec(); $("sheet").scrollTop = 0;
+  });
   $("recBody").addEventListener("click", (ev) => {
+    const mb = ev.target.closest("[data-month]");
+    if (mb) {
+      // Dari paparan tahunan: buka bulan itu dalam paparan bulanan
+      view = new Date(view.getFullYear(), Number(mb.dataset.month), 1);
+      recMode = "month"; renderCal(); renderRec(); $("sheet").scrollTop = 0;
+      return;
+    }
     const b = ev.target.closest("[data-goto]"); if (!b) return;
     const [yy, mm, dd] = b.dataset.goto.split("-").map(Number);
     closeRec();

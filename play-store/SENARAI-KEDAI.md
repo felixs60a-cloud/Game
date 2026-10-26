@@ -21,7 +21,7 @@ CIRI-CIRI
 • Kategori: Makan, Pengangkutan, Barang dapur, Bil, Belanja, atau tambah kategori sendiri
 • Ruang nota untuk butiran tambahan
 • Ubah atau padam nota bila-bila masa
-• Halaman Rekod perbelanjaan: jumlah ikut kategori dan semua nota ikut tarikh
+• Rekod perbelanjaan bulanan dan tahunan: jumlah ikut kategori, ikut bulan dan ikut tarikh
 • Bahasa Melayu dan English
 • Mod gelap mengikut tetapan telefon
 • Berfungsi tanpa internet
@@ -59,7 +59,7 @@ FEATURES
 • Monthly calendar starting on Monday
 • Daily totals shown on every date
 • Monthly total at the top
-• Expense records page: totals by category and every note by date
+• Monthly and yearly expense records: totals by category, by month and by date
 • Categories: Food, Transport, Groceries, Bills, Shopping, or add your own
 • Optional note for extra details
 • Edit or delete notes any time

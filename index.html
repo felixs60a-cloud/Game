@@ -53,6 +53,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
 header h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
 header h1 span { color: var(--brand); }
+.brand { flex: 1 1 300px; min-width: 0; }
+.brand-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--surface); flex-shrink: 0; }
+.lang button { border: none; background: none; border-radius: 999px; padding: 4px 11px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
+.lang button[aria-pressed="true"] { background: var(--brand); color: var(--surface); }
 .month-total { text-align: right; }
 @media (max-width: 480px) { .month-total { text-align: left; width: 100%; } }
 .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
@@ -183,33 +188,38 @@ textarea { resize: vertical; min-height: 64px; }
 
 <div class="wrap">
   <header>
-    <div>
-      <div class="label">Rekod perbelanjaan</div>
-      <h1>Buku <span>Belanja</span> Harian</h1>
+    <div class="brand">
+      <div class="brand-top">
+        <div class="label" data-i18n="eyebrow">Rekod perbelanjaan</div>
+        <div class="lang" role="group" data-i18n-aria="language" aria-label="Bahasa">
+          <button type="button" data-lang="ms" aria-pressed="true">BM</button>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+      <h1 id="appTitle">Buku <span>Belanja</span> Harian</h1>
     </div>
     <div class="month-total">
       <div class="label" id="monthLabel">Jumlah bulan ini</div>
       <div class="mt-row">
         <div class="num" id="monthTotal">RM 0.00</div>
-        <button type="button" class="rec-btn" id="openRec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>Rekod perbelanjaan</button>
+        <button type="button" class="rec-btn" id="openRec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg><span data-i18n="records">Rekod perbelanjaan</span></button>
       </div>
     </div>
   </header>
 
-
   <div class="main">
-    <section class="cal" aria-label="Kalendar">
+    <section class="cal" data-i18n-aria="calendar" aria-label="Kalendar">
       <div class="cal-head">
         <h2 id="calTitle">Bulan</h2>
         <div class="nav">
-          <button type="button" id="prevM" aria-label="Bulan sebelum">‹</button>
-          <button type="button" id="todayBtn">Hari ini</button>
-          <button type="button" id="nextM" aria-label="Bulan seterusnya">›</button>
+          <button type="button" id="prevM" data-i18n-aria="prevMonth" aria-label="Bulan sebelum">‹</button>
+          <button type="button" id="todayBtn" data-i18n="today">Hari ini</button>
+          <button type="button" id="nextM" data-i18n-aria="nextMonth" aria-label="Bulan seterusnya">›</button>
         </div>
       </div>
       <div class="grid" id="grid"></div>
       <div class="cal-foot">
-        <span>Tekan mana-mana tarikh untuk tulis nota.</span>
+        <span data-i18n="calHint">Tekan mana-mana tarikh untuk tulis nota.</span>
       </div>
     </section>
 
@@ -220,7 +230,7 @@ textarea { resize: vertical; min-height: 64px; }
           <div class="date" id="dayDate"></div>
         </div>
         <div class="day-total">
-          <div class="label">Jumlah hari</div>
+          <div class="label" data-i18n="dayTotal">Jumlah hari</div>
           <div class="num" id="dayTotal">RM 0.00</div>
         </div>
       </div>
@@ -230,29 +240,29 @@ textarea { resize: vertical; min-height: 64px; }
       <form id="form" novalidate>
         <h3 id="formTitle">Tambah nota perbelanjaan</h3>
         <div class="row">
-          <label for="fItem">Perkara
-            <input id="fItem" type="text" maxlength="80" placeholder="cth. Nasi lemak + teh tarik" autocomplete="off">
+          <label for="fItem"><span data-i18n="item">Perkara</span>
+            <input id="fItem" type="text" maxlength="80" data-i18n-ph="itemPh" placeholder="cth. Nasi lemak + teh tarik" autocomplete="off">
           </label>
-          <label for="fAmt">Jumlah
+          <label for="fAmt"><span data-i18n="amount">Jumlah</span>
             <span class="money"><span>RM</span><input id="fAmt" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></span>
           </label>
         </div>
         <div>
-          <div class="label" style="margin-bottom:6px">Kategori</div>
+          <div class="label" style="margin-bottom:6px" data-i18n="category">Kategori</div>
           <div class="cats" id="cats"></div>
           <div class="cat-new" id="catNew" hidden>
-            <input id="fCat" type="text" maxlength="30" placeholder="Tulis kategori, cth. Sedekah" autocomplete="off" aria-label="Kategori baharu">
-            <button type="button" class="ok" id="catAdd">Simpan</button>
-            <button type="button" class="no" id="catCancel">Batal</button>
+            <input id="fCat" type="text" maxlength="30" data-i18n-ph="catPh" placeholder="Tulis kategori, cth. Sedekah" autocomplete="off" data-i18n-aria="catNew" aria-label="Kategori baharu">
+            <button type="button" class="ok" id="catAdd" data-i18n="save">Simpan</button>
+            <button type="button" class="no" id="catCancel" data-i18n="cancel">Batal</button>
           </div>
         </div>
-        <label for="fNote">Nota (pilihan)
-          <textarea id="fNote" maxlength="500" placeholder="cth. Sarapan dengan kawan sekerja di gerai depan pejabat"></textarea>
+        <label for="fNote"><span data-i18n="note">Nota (pilihan)</span>
+          <textarea id="fNote" maxlength="500" data-i18n-ph="notePh" placeholder="cth. Sarapan dengan kawan sekerja di gerai depan pejabat"></textarea>
         </label>
         <div class="err" id="err"></div>
         <div class="form-acts">
           <button type="submit" class="btn primary" id="saveBtn">Simpan nota</button>
-          <button type="button" class="btn ghost" id="cancelEdit" hidden>Batal</button>
+          <button type="button" class="btn ghost" id="cancelEdit" data-i18n="cancel" hidden>Batal</button>
         </div>
       </form>
     </section>
@@ -262,15 +272,15 @@ textarea { resize: vertical; min-height: 64px; }
   <div class="sheet-in">
     <div class="sheet-head">
       <div>
-        <h2 id="recTitle">Rekod perbelanjaan</h2>
+        <h2 id="recTitle" data-i18n="records">Rekod perbelanjaan</h2>
         <div class="sheet-sub" id="recSub"></div>
       </div>
-      <button type="button" class="close" id="closeRec" aria-label="Tutup">×</button>
+      <button type="button" class="close" id="closeRec" data-i18n-aria="close" aria-label="Tutup">×</button>
     </div>
     <div class="sheet-nav">
-      <button type="button" id="recPrev" aria-label="Bulan sebelum">‹</button>
+      <button type="button" id="recPrev" data-i18n-aria="prevMonth" aria-label="Bulan sebelum">‹</button>
       <div><strong id="recMonth"></strong><span class="num" id="recTotal"></span></div>
-      <button type="button" id="recNext" aria-label="Bulan seterusnya">›</button>
+      <button type="button" id="recNext" data-i18n-aria="nextMonth" aria-label="Bulan seterusnya">›</button>
     </div>
     <div id="recBody"></div>
   </div>
@@ -279,18 +289,130 @@ textarea { resize: vertical; min-height: 64px; }
 
 <script>
 (function () {
-  const HARI = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
-  const HARI_PENDEK = ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"];
-  const BULAN = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+  // ---- Teks dua bahasa ----
+  const T = {
+    ms: {
+      title: "Buku Belanja Harian",
+      h1: 'Buku <span>Belanja</span> Harian',
+      eyebrow: "Rekod perbelanjaan",
+      language: "Bahasa",
+      records: "Rekod perbelanjaan",
+      monthTotal: (m) => "Jumlah " + m,
+      calendar: "Kalendar",
+      prevMonth: "Bulan sebelum",
+      nextMonth: "Bulan seterusnya",
+      today: "Hari ini",
+      calHint: "Tekan mana-mana tarikh untuk tulis nota.",
+      dayTotal: "Jumlah hari",
+      addTitle: "Tambah nota perbelanjaan",
+      editTitle: "Ubah nota",
+      item: "Perkara",
+      itemPh: "cth. Nasi lemak + teh tarik",
+      amount: "Jumlah",
+      category: "Kategori",
+      catPh: "Tulis kategori, cth. Sedekah",
+      catNew: "Kategori baharu",
+      save: "Simpan",
+      cancel: "Batal",
+      note: "Nota (pilihan)",
+      notePh: "cth. Sarapan dengan kawan sekerja di gerai depan pejabat",
+      saveNote: "Simpan nota",
+      saveChanges: "Simpan perubahan",
+      emptyDay: (d) => "Tiada perbelanjaan lagi untuk hari " + d + ". Tulis nota pertama di bawah.",
+      delQ: "Padam?", yes: "Ya", no: "Tidak", edit: "Ubah", del: "Padam",
+      removeCat: (c) => "Buang kategori " + c,
+      addCat: "✏️ Tambah",
+      catAdded: (c) => "Kategori “" + c + "” ditambah",
+      noteDeleted: "Nota dipadam",
+      changesSaved: "Perubahan disimpan",
+      noteSaved: "Nota disimpan",
+      errItem: "Tulis apa yang dibeli, contohnya “Makan tengah hari”.",
+      errAmt: "Masukkan jumlah dalam RM, contohnya 12.50.",
+      close: "Tutup",
+      recSub: (n, d) => n + " nota dalam " + d + " hari",
+      noNotes: "Tiada nota",
+      recEmpty: (m) => "Belum ada perbelanjaan direkod untuk " + m + ". Tutup halaman ini dan tekan mana-mana tarikh pada kalendar untuk mula.",
+      byCat: "Ikut kategori",
+      byDate: "Ikut tarikh",
+      open: "Buka",
+      days: ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"],
+      dow: ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"],
+      months: ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"],
+      monthsShort: ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"],
+      cats: {}
+    },
+    en: {
+      title: "Daily Expense Book",
+      h1: 'Daily <span>Expense</span> Book',
+      eyebrow: "Expense records",
+      language: "Language",
+      records: "Expense records",
+      monthTotal: (m) => "Total for " + m,
+      calendar: "Calendar",
+      prevMonth: "Previous month",
+      nextMonth: "Next month",
+      today: "Today",
+      calHint: "Tap any date to write a note.",
+      dayTotal: "Day total",
+      addTitle: "Add an expense note",
+      editTitle: "Edit note",
+      item: "Item",
+      itemPh: "e.g. Nasi lemak + teh tarik",
+      amount: "Amount",
+      category: "Category",
+      catPh: "Type a category, e.g. Charity",
+      catNew: "New category",
+      save: "Save",
+      cancel: "Cancel",
+      note: "Note (optional)",
+      notePh: "e.g. Breakfast with colleagues at the stall near the office",
+      saveNote: "Save note",
+      saveChanges: "Save changes",
+      emptyDay: (d) => "No expenses yet for " + d + ". Write your first note below.",
+      delQ: "Delete?", yes: "Yes", no: "No", edit: "Edit", del: "Delete",
+      removeCat: (c) => "Remove category " + c,
+      addCat: "✏️ Add",
+      catAdded: (c) => "Category “" + c + "” added",
+      noteDeleted: "Note deleted",
+      changesSaved: "Changes saved",
+      noteSaved: "Note saved",
+      errItem: "Write what you bought, for example “Lunch”.",
+      errAmt: "Enter an amount in RM, for example 12.50.",
+      close: "Close",
+      recSub: (n, d) => n + (n === 1 ? " note" : " notes") + " across " + d + (d === 1 ? " day" : " days"),
+      noNotes: "No notes",
+      recEmpty: (m) => "No expenses recorded for " + m + " yet. Close this page and tap any date on the calendar to start.",
+      byCat: "By category",
+      byDate: "By date",
+      open: "Open",
+      days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      dow: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      // Kategori asal disimpan dengan nama Melayu; ini terjemahan paparannya
+      cats: { "Makan": "Food", "Pengangkutan": "Transport", "Barang dapur": "Groceries", "Bil": "Bills", "Belanja": "Shopping", "Lain-lain": "Others" }
+    }
+  };
   const KATEGORI = ["Makan", "Pengangkutan", "Barang dapur", "Bil", "Belanja"];
   const KEY = "bukuBelanja.v1";
+  const LANG_KEY = "bukuBelanja.lang";
+
+  let lang = "ms";
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === "ms" || saved === "en") lang = saved;
+    else if (/^en\b/i.test(navigator.language || "")) lang = "en";
+  } catch (e) {}
+  const t = () => T[lang];
+  const catLabel = (c) => t().cats[c] || c;
 
   const $ = (id) => document.getElementById(id);
   const pad = (n) => String(n).padStart(2, "0");
   const keyOf = (d) => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-  const rm = (n) => "RM " + n.toLocaleString("ms-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const rm = (n) => "RM " + n.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const sum = (arr) => arr.reduce((s, e) => s + (Number(e.amt) || 0), 0);
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const monthName = (y, m) => t().months[m] + " " + y;
 
   let store = { days: {}, cats: [] };
   function load() {
@@ -321,13 +443,35 @@ textarea { resize: vertical; min-height: 64px; }
 
   function entries(k) { return store.days[k] || []; }
 
+  function applyStatic() {
+    const L = t();
+    document.documentElement.lang = lang;
+    document.title = L.title;
+    $("appTitle").innerHTML = L.h1;
+    document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = L[el.dataset.i18n]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = L[el.dataset.i18nPh]; });
+    document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", L[el.dataset.i18nAria]); });
+    document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    $("formTitle").textContent = editingId ? L.editTitle : L.addTitle;
+    $("saveBtn").textContent = editingId ? L.saveChanges : L.saveNote;
+  }
+
+  function setLang(l) {
+    lang = l;
+    try { localStorage.setItem(LANG_KEY, l); } catch (e) {}
+    $("err").textContent = "";
+    applyStatic(); renderCats(); renderCal(); renderPanel();
+    if (!$("sheet").hidden) renderRec();
+  }
+
   function renderCal() {
+    const L = t();
     const y = view.getFullYear(), m = view.getMonth();
-    $("calTitle").textContent = BULAN[m] + " " + y;
-    $("monthLabel").textContent = "Jumlah " + BULAN[m] + " " + y;
+    $("calTitle").textContent = monthName(y, m);
+    $("monthLabel").textContent = L.monthTotal(monthName(y, m));
     const grid = $("grid");
     grid.innerHTML = "";
-    HARI_PENDEK.forEach((h, i) => {
+    L.dow.forEach((h, i) => {
       const el = document.createElement("div");
       el.className = "dow" + (i >= 5 ? " wkend" : "");
       el.textContent = h;
@@ -350,7 +494,7 @@ textarea { resize: vertical; min-height: 64px; }
       btn.className = "day" + (total > 0 ? " has" : "") +
         (date.getTime() === today.getTime() ? " today" : "") +
         (date.getTime() === selected.getTime() ? " sel" : "");
-      btn.setAttribute("aria-label", HARI[date.getDay()] + " " + d + " " + BULAN[m] + (total ? ", " + rm(total) : ""));
+      btn.setAttribute("aria-label", L.days[date.getDay()] + " " + d + " " + L.months[m] + (total ? ", " + rm(total) : ""));
       btn.innerHTML = '<span class="d">' + d + '</span>' + (total ? '<span class="amt">' + Math.round(total) + '</span>' : "");
       btn.addEventListener("click", () => selectDay(date, true));
       grid.appendChild(btn);
@@ -361,36 +505,38 @@ textarea { resize: vertical; min-height: 64px; }
   function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
   function renderPanel() {
+    const L = t();
     const k = keyOf(selected);
     const list = entries(k);
-    $("dayName").textContent = HARI[selected.getDay()];
-    $("dayDate").textContent = selected.getDate() + " " + BULAN[selected.getMonth()] + " " + selected.getFullYear() +
-      (selected.getTime() === today.getTime() ? " · Hari ini" : "");
+    $("dayName").textContent = L.days[selected.getDay()];
+    $("dayDate").textContent = selected.getDate() + " " + L.months[selected.getMonth()] + " " + selected.getFullYear() +
+      (selected.getTime() === today.getTime() ? " · " + L.today : "");
     $("dayTotal").textContent = rm(sum(list));
     const ul = $("list");
     if (!list.length) {
-      ul.innerHTML = '<li class="empty">Tiada perbelanjaan lagi untuk hari ' + HARI[selected.getDay()] + '. Tulis nota pertama di bawah.</li>';
+      ul.innerHTML = '<li class="empty">' + esc(L.emptyDay(L.days[selected.getDay()])) + '</li>';
       return;
     }
     ul.innerHTML = list.map((e) => {
       const acts = confirmId === e.id
-        ? '<span class="confirm">Padam? <button type="button" class="yes" data-yes="' + e.id + '">Ya</button><button type="button" class="no" data-no="1">Tidak</button></span>'
-        : '<span class="acts"><button type="button" data-edit="' + e.id + '">Ubah</button><button type="button" class="del" data-del="' + e.id + '">Padam</button></span>';
-      return '<li><div class="item-main"><div class="item-title"><span class="chip">' + esc(e.cat) + '</span>' + esc(e.item) + '</div>' +
+        ? '<span class="confirm">' + L.delQ + ' <button type="button" class="yes" data-yes="' + e.id + '">' + L.yes + '</button><button type="button" class="no" data-no="1">' + L.no + '</button></span>'
+        : '<span class="acts"><button type="button" data-edit="' + e.id + '">' + L.edit + '</button><button type="button" class="del" data-del="' + e.id + '">' + L.del + '</button></span>';
+      return '<li><div class="item-main"><div class="item-title"><span class="chip">' + esc(catLabel(e.cat)) + '</span>' + esc(e.item) + '</div>' +
         (e.note ? '<div class="item-note">' + esc(e.note) + '</div>' : "") +
         '</div><div class="item-side"><span class="num">' + rm(Number(e.amt)) + '</span>' + acts + '</div></li>';
     }).join("");
   }
 
   function renderCats() {
-    const chip = (c) => '<button type="button" aria-pressed="' + (c === selCat) + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+    const L = t();
+    const chip = (c) => '<button type="button" aria-pressed="' + (c === selCat) + '" data-cat="' + esc(c) + '">' + esc(catLabel(c)) + '</button>';
     const own = store.cats.slice();
     // Nota lama mungkin guna kategori yang tiada dalam senarai (cth. "Lain-lain")
     const extra = KATEGORI.includes(selCat) || own.includes(selCat) ? [] : [selCat];
     $("cats").innerHTML = KATEGORI.map(chip).join("") +
-      own.map((c) => '<span class="cc">' + chip(c) + '<button type="button" class="x" data-delcat="' + esc(c) + '" aria-label="Buang kategori ' + esc(c) + '">×</button></span>').join("") +
+      own.map((c) => '<span class="cc">' + chip(c) + '<button type="button" class="x" data-delcat="' + esc(c) + '" aria-label="' + esc(L.removeCat(c)) + '">×</button></span>').join("") +
       extra.map(chip).join("") +
-      '<button type="button" class="add" id="catOpen">✏️ Tambah</button>';
+      '<button type="button" class="add" id="catOpen">' + L.addCat + '</button>';
   }
 
   function closeCatNew() { $("catNew").hidden = true; $("fCat").value = ""; }
@@ -398,9 +544,11 @@ textarea { resize: vertical; min-height: 64px; }
   function addCat() {
     const name = $("fCat").value.trim().replace(/\s+/g, " ");
     if (!name) { $("fCat").focus(); return; }
-    const found = KATEGORI.concat(store.cats).find((c) => c.toLowerCase() === name.toLowerCase());
+    const low = name.toLowerCase();
+    // Padankan dengan nama Melayu atau Inggeris kategori sedia ada
+    const found = KATEGORI.concat(store.cats).find((c) => c.toLowerCase() === low || (T.en.cats[c] || "").toLowerCase() === low);
     if (found) { selCat = found; }
-    else { store.cats.push(name); selCat = name; save(); toast("Kategori \u201c" + name + "\u201d ditambah"); }
+    else { store.cats.push(name); selCat = name; save(); toast(t().catAdded(name)); }
     closeCatNew(); renderCats();
   }
 
@@ -408,8 +556,8 @@ textarea { resize: vertical; min-height: 64px; }
     editingId = null;
     $("fItem").value = ""; $("fAmt").value = ""; $("fNote").value = "";
     $("err").textContent = "";
-    $("formTitle").textContent = "Tambah nota perbelanjaan";
-    $("saveBtn").textContent = "Simpan nota";
+    $("formTitle").textContent = t().addTitle;
+    $("saveBtn").textContent = t().saveNote;
     $("cancelEdit").hidden = true;
     selCat = KATEGORI[0]; closeCatNew(); renderCats();
   }
@@ -426,19 +574,24 @@ textarea { resize: vertical; min-height: 64px; }
 
   let toastTimer;
   function toast(msg) {
-    const t = $("toast"); t.textContent = msg; t.hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 1800);
+    const el = $("toast"); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 1800);
   }
 
+  document.querySelector(".lang").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-lang]");
+    if (b && b.dataset.lang !== lang) setLang(b.dataset.lang);
+  });
+
   $("cats").addEventListener("click", (ev) => {
-    const t = ev.target;
-    if (t.id === "catOpen") { $("catNew").hidden = false; $("fCat").focus(); return; }
-    if (t.dataset.delcat) {
-      store.cats = store.cats.filter((c) => c !== t.dataset.delcat);
-      if (selCat === t.dataset.delcat) selCat = KATEGORI[0];
+    const el = ev.target;
+    if (el.id === "catOpen") { $("catNew").hidden = false; $("fCat").focus(); return; }
+    if (el.dataset.delcat) {
+      store.cats = store.cats.filter((c) => c !== el.dataset.delcat);
+      if (selCat === el.dataset.delcat) selCat = KATEGORI[0];
       save(); renderCats(); return;
     }
-    const b = t.closest("[data-cat]"); if (!b) return;
+    const b = el.closest("[data-cat]"); if (!b) return;
     selCat = b.dataset.cat; renderCats();
   });
   $("catAdd").addEventListener("click", addCat);
@@ -450,24 +603,24 @@ textarea { resize: vertical; min-height: 64px; }
 
   $("list").addEventListener("click", (ev) => {
     const k = keyOf(selected);
-    const t = ev.target;
-    if (t.dataset.del) { confirmId = t.dataset.del; renderPanel(); return; }
-    if (t.dataset.no) { confirmId = null; renderPanel(); return; }
-    if (t.dataset.yes) {
-      store.days[k] = entries(k).filter((e) => e.id !== t.dataset.yes);
+    const el = ev.target;
+    if (el.dataset.del) { confirmId = el.dataset.del; renderPanel(); return; }
+    if (el.dataset.no) { confirmId = null; renderPanel(); return; }
+    if (el.dataset.yes) {
+      store.days[k] = entries(k).filter((e) => e.id !== el.dataset.yes);
       if (!store.days[k].length) delete store.days[k];
       confirmId = null;
-      if (editingId === t.dataset.yes) resetForm();
-      save(); renderCal(); renderPanel(); toast("Nota dipadam");
+      if (editingId === el.dataset.yes) resetForm();
+      save(); renderCal(); renderPanel(); toast(t().noteDeleted);
       return;
     }
-    if (t.dataset.edit) {
-      const e = entries(k).find((x) => x.id === t.dataset.edit); if (!e) return;
+    if (el.dataset.edit) {
+      const e = entries(k).find((x) => x.id === el.dataset.edit); if (!e) return;
       editingId = e.id;
       $("fItem").value = e.item; $("fAmt").value = e.amt; $("fNote").value = e.note || "";
       selCat = e.cat; renderCats();
-      $("formTitle").textContent = "Ubah nota";
-      $("saveBtn").textContent = "Simpan perubahan";
+      $("formTitle").textContent = t().editTitle;
+      $("saveBtn").textContent = t().saveChanges;
       $("cancelEdit").hidden = false;
       $("fItem").focus();
     }
@@ -480,8 +633,8 @@ textarea { resize: vertical; min-height: 64px; }
     const item = $("fItem").value.trim();
     const amt = parseFloat($("fAmt").value);
     const note = $("fNote").value.trim();
-    if (!item) { $("err").textContent = "Tulis apa yang dibeli, contohnya \"Makan tengah hari\"."; $("fItem").focus(); return; }
-    if (!(amt >= 0) || !isFinite(amt)) { $("err").textContent = "Masukkan jumlah dalam RM, contohnya 12.50."; $("fAmt").focus(); return; }
+    if (!item) { $("err").textContent = t().errItem; $("fItem").focus(); return; }
+    if (!(amt >= 0) || !isFinite(amt)) { $("err").textContent = t().errAmt; $("fAmt").focus(); return; }
     const k = keyOf(selected);
     const list = entries(k).slice();
     const rec = { item, amt: Math.round(amt * 100) / 100, cat: selCat, note };
@@ -494,13 +647,12 @@ textarea { resize: vertical; min-height: 64px; }
     store.days[k] = list;
     const wasEdit = !!editingId;
     save(); resetForm(); renderCal(); renderPanel();
-    toast(wasEdit ? "Perubahan disimpan" : "Nota disimpan");
+    toast(wasEdit ? t().changesSaved : t().noteSaved);
   });
 
-
   // ---- Rekod perbelanjaan (senarai sebulan) ----
-  const BULAN_PENDEK = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
   function renderRec() {
+    const L = t();
     const y = view.getFullYear(), m = view.getMonth();
     const prefix = y + "-" + pad(m + 1) + "-";
     const keys = Object.keys(store.days).filter((k) => k.startsWith(prefix) && store.days[k].length).sort().reverse();
@@ -510,27 +662,27 @@ textarea { resize: vertical; min-height: 64px; }
       const a = Number(e.amt) || 0; total += a; count++;
       byCat[e.cat] = (byCat[e.cat] || 0) + a;
     }));
-    $("recMonth").textContent = BULAN[m] + " " + y;
+    $("recMonth").textContent = monthName(y, m);
     $("recTotal").textContent = rm(total);
-    $("recSub").textContent = count ? count + " nota dalam " + keys.length + " hari" : "Tiada nota";
+    $("recSub").textContent = count ? L.recSub(count, keys.length) : L.noNotes;
     if (!count) {
-      $("recBody").innerHTML = '<div class="sec"><p class="empty" style="margin:0">Belum ada perbelanjaan direkod untuk ' + BULAN[m] + ' ' + y + '. Tutup halaman ini dan tekan mana-mana tarikh pada kalendar untuk mula.</p></div>';
+      $("recBody").innerHTML = '<div class="sec"><p class="empty" style="margin:0">' + esc(L.recEmpty(monthName(y, m))) + '</p></div>';
       return;
     }
     const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
     const max = cats[0][1] || 1;
     const catHtml = cats.map(([c, a]) =>
-      '<div class="catrow"><span class="nm">' + esc(c) + '</span><span class="num">' + rm(a) + ' <small style="color:var(--muted);font-weight:500">' + Math.round(a / total * 100) + '%</small></span>' +
+      '<div class="catrow"><span class="nm">' + esc(catLabel(c)) + '</span><span class="num">' + rm(a) + ' <small style="color:var(--muted);font-weight:500">' + Math.round(a / total * 100) + '%</small></span>' +
       '<div class="bar"><i style="width:' + Math.max(2, a / max * 100).toFixed(1) + '%"></i></div></div>').join("");
     const dayHtml = keys.map((k) => {
       const [yy, mm, dd] = k.split("-").map(Number);
       const d = new Date(yy, mm - 1, dd);
       const list = store.days[k];
-      return '<div class="dgroup"><button type="button" class="dhead" data-goto="' + k + '"><span>' + HARI[d.getDay()] + ', ' + dd + ' ' + BULAN_PENDEK[mm - 1] + '<small>Buka</small></span><span class="num">' + rm(sum(list)) + '</span></button>' +
-        list.map((e) => '<div class="dline"><span><span class="chip">' + esc(e.cat) + '</span>' + esc(e.item) + '</span><span class="num">' + rm(Number(e.amt)) + '</span></div>').join("") + '</div>';
+      return '<div class="dgroup"><button type="button" class="dhead" data-goto="' + k + '"><span>' + L.days[d.getDay()] + ', ' + dd + ' ' + L.monthsShort[mm - 1] + '<small>' + L.open + '</small></span><span class="num">' + rm(sum(list)) + '</span></button>' +
+        list.map((e) => '<div class="dline"><span><span class="chip">' + esc(catLabel(e.cat)) + '</span>' + esc(e.item) + '</span><span class="num">' + rm(Number(e.amt)) + '</span></div>').join("") + '</div>';
     }).join("");
-    $("recBody").innerHTML = '<div style="display:grid;gap:18px"><section class="sec"><h3>Ikut kategori</h3>' + catHtml + '</section>' +
-      '<section class="sec"><h3>Ikut tarikh</h3>' + dayHtml + '</section></div>';
+    $("recBody").innerHTML = '<div style="display:grid;gap:18px"><section class="sec"><h3>' + L.byCat + '</h3>' + catHtml + '</section>' +
+      '<section class="sec"><h3>' + L.byDate + '</h3>' + dayHtml + '</section></div>';
   }
   let lastFocus = null;
   function openRec() {
@@ -566,6 +718,7 @@ textarea { resize: vertical; min-height: 64px; }
   $("todayBtn").addEventListener("click", () => { view = new Date(today.getFullYear(), today.getMonth(), 1); selectDay(today, false); });
 
   load();
+  applyStatic();
   renderCats();
   renderCal();
   renderPanel();

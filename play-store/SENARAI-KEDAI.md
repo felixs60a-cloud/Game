@@ -18,7 +18,7 @@ CIRI-CIRI
 • Kalendar bulanan bermula hari Isnin
 • Jumlah harian terus kelihatan pada setiap tarikh
 • Jumlah keseluruhan sebulan di bahagian atas
-• Kategori: Makan, Pengangkutan, Barang dapur, Bil, Belanja, Lain-lain
+• Kategori: Makan, Pengangkutan, Barang dapur, Bil, Belanja, atau tambah kategori sendiri
 • Ruang nota untuk butiran tambahan
 • Ubah atau padam nota bila-bila masa
 • Mod gelap mengikut tetapan telefon

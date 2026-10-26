@@ -119,6 +119,16 @@ textarea { resize: vertical; min-height: 64px; }
 .cats { display: flex; flex-wrap: wrap; gap: 6px; }
 .cats button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; }
 .cats button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--surface); }
+.cats .cc { display: inline-flex; }
+.cats .cc button[data-cat] { border-radius: 999px 0 0 999px; border-right: none; }
+.cats .cc .x { border-radius: 0 999px 999px 0; padding: 5px 10px 5px 8px; color: var(--muted); }
+.cats .cc button[aria-pressed="true"] + .x { background: var(--brand); border-color: var(--brand); color: var(--surface); }
+.cats .add { border-style: dashed; border-color: var(--brand); color: var(--brand); }
+.cat-new { display: flex; gap: 6px; margin-top: 8px; }
+.cat-new input { flex: 1; min-width: 0; padding: 7px 10px; }
+.cat-new button { border: none; border-radius: 8px; padding: 0 12px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+.cat-new .ok { background: var(--brand); color: var(--surface); }
+.cat-new .no { background: none; color: var(--muted); }
 .form-acts { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn { border: none; border-radius: 10px; padding: 11px 18px; font-weight: 700; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); }
@@ -191,6 +201,11 @@ textarea { resize: vertical; min-height: 64px; }
         <div>
           <div class="label" style="margin-bottom:6px">Kategori</div>
           <div class="cats" id="cats"></div>
+          <div class="cat-new" id="catNew" hidden>
+            <input id="fCat" type="text" maxlength="30" placeholder="Tulis kategori, cth. Sedekah" autocomplete="off" aria-label="Kategori baharu">
+            <button type="button" class="ok" id="catAdd">Simpan</button>
+            <button type="button" class="no" id="catCancel">Batal</button>
+          </div>
         </div>
         <label for="fNote">Nota (pilihan)
           <textarea id="fNote" maxlength="500" placeholder="cth. Sarapan dengan kawan sekerja di gerai depan pejabat"></textarea>
@@ -211,7 +226,7 @@ textarea { resize: vertical; min-height: 64px; }
   const HARI = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
   const HARI_PENDEK = ["Isn", "Sel", "Rab", "Kha", "Jum", "Sab", "Ahd"];
   const BULAN = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
-  const KATEGORI = ["Makan", "Pengangkutan", "Barang dapur", "Bil", "Belanja", "Lain-lain"];
+  const KATEGORI = ["Makan", "Pengangkutan", "Barang dapur", "Bil", "Belanja"];
   const KEY = "bukuBelanja.v1";
 
   const $ = (id) => document.getElementById(id);
@@ -221,13 +236,14 @@ textarea { resize: vertical; min-height: 64px; }
   const sum = (arr) => arr.reduce((s, e) => s + (Number(e.amt) || 0), 0);
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-  let store = { days: {} };
+  let store = { days: {}, cats: [] };
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) store = JSON.parse(raw);
     } catch (e) {}
     if (!store || typeof store.days !== "object") store = { days: {} };
+    if (!Array.isArray(store.cats)) store.cats = [];
     // Buang data contoh daripada versi awal app
     let changed = false;
     Object.keys(store.days).forEach((k) => {
@@ -311,8 +327,25 @@ textarea { resize: vertical; min-height: 64px; }
   }
 
   function renderCats() {
-    $("cats").innerHTML = KATEGORI.map((c) =>
-      '<button type="button" aria-pressed="' + (c === selCat) + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>').join("");
+    const chip = (c) => '<button type="button" aria-pressed="' + (c === selCat) + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+    const own = store.cats.slice();
+    // Nota lama mungkin guna kategori yang tiada dalam senarai (cth. "Lain-lain")
+    const extra = KATEGORI.includes(selCat) || own.includes(selCat) ? [] : [selCat];
+    $("cats").innerHTML = KATEGORI.map(chip).join("") +
+      own.map((c) => '<span class="cc">' + chip(c) + '<button type="button" class="x" data-delcat="' + esc(c) + '" aria-label="Buang kategori ' + esc(c) + '">×</button></span>').join("") +
+      extra.map(chip).join("") +
+      '<button type="button" class="add" id="catOpen">✏️ Tambah</button>';
+  }
+
+  function closeCatNew() { $("catNew").hidden = true; $("fCat").value = ""; }
+
+  function addCat() {
+    const name = $("fCat").value.trim().replace(/\s+/g, " ");
+    if (!name) { $("fCat").focus(); return; }
+    const found = KATEGORI.concat(store.cats).find((c) => c.toLowerCase() === name.toLowerCase());
+    if (found) { selCat = found; }
+    else { store.cats.push(name); selCat = name; save(); toast("Kategori \u201c" + name + "\u201d ditambah"); }
+    closeCatNew(); renderCats();
   }
 
   function resetForm() {
@@ -322,7 +355,7 @@ textarea { resize: vertical; min-height: 64px; }
     $("formTitle").textContent = "Tambah nota perbelanjaan";
     $("saveBtn").textContent = "Simpan nota";
     $("cancelEdit").hidden = true;
-    selCat = KATEGORI[0]; renderCats();
+    selCat = KATEGORI[0]; closeCatNew(); renderCats();
   }
 
   function selectDay(date, scroll) {
@@ -342,8 +375,21 @@ textarea { resize: vertical; min-height: 64px; }
   }
 
   $("cats").addEventListener("click", (ev) => {
-    const b = ev.target.closest("[data-cat]"); if (!b) return;
+    const t = ev.target;
+    if (t.id === "catOpen") { $("catNew").hidden = false; $("fCat").focus(); return; }
+    if (t.dataset.delcat) {
+      store.cats = store.cats.filter((c) => c !== t.dataset.delcat);
+      if (selCat === t.dataset.delcat) selCat = KATEGORI[0];
+      save(); renderCats(); return;
+    }
+    const b = t.closest("[data-cat]"); if (!b) return;
     selCat = b.dataset.cat; renderCats();
+  });
+  $("catAdd").addEventListener("click", addCat);
+  $("catCancel").addEventListener("click", closeCatNew);
+  $("fCat").addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") { ev.preventDefault(); addCat(); }
+    if (ev.key === "Escape") closeCatNew();
   });
 
   $("list").addEventListener("click", (ev) => {

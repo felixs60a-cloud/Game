@@ -54,9 +54,45 @@ header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content:
 header h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
 header h1 span { color: var(--brand); }
 .month-total { text-align: right; }
-@media (max-width: 480px) { .month-total { text-align: left; } }
+@media (max-width: 480px) { .month-total { text-align: left; width: 100%; } }
 .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
 .month-total .num { font-size: 1.6rem; font-weight: 700; }
+.mt-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 14px; }
+@media (max-width: 480px) { .mt-row { justify-content: space-between; } }
+.rec-btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--brand); background: var(--surface); color: var(--brand); border-radius: 999px; padding: 7px 12px; font-weight: 700; font-size: 0.84rem; white-space: nowrap; }
+@media (max-width: 400px) { .month-total .num { font-size: 1.35rem; } }
+@media (max-width: 380px) { .rec-btn { padding: 6px 9px; font-size: 0.78rem; gap: 4px; } .rec-btn svg { width: 14px; height: 14px; } .mt-row { gap: 8px 10px; } }
+.rec-btn svg { width: 16px; height: 16px; }
+
+/* Lembaran Rekod perbelanjaan */
+.sheet { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow-y: auto; overscroll-behavior: contain;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.sheet-in { max-width: 680px; margin: 0 auto; display: grid; gap: 18px; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sheet-head h2 { font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
+.sheet-sub { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+.close { border: 1px solid var(--line); background: var(--surface); border-radius: 50%; width: 40px; height: 40px; font-size: 1.3rem; line-height: 1; flex-shrink: 0; }
+.sheet-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+.sheet-nav strong { font-family: var(--f-display); font-size: 1.1rem; font-weight: 600; }
+.sheet-nav .num { display: block; color: var(--brand); font-weight: 700; font-size: 0.95rem; text-align: center; }
+.sheet-nav button { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; width: 38px; height: 38px; font-weight: 700; }
+.sec { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; }
+.sec h3 { margin: 0; font-family: var(--f-display); font-size: 1rem; font-weight: 600; }
+.catrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; font-size: 0.92rem; }
+.catrow .nm { font-weight: 600; overflow-wrap: anywhere; }
+.catrow .num { font-weight: 700; }
+.bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.dgroup { display: grid; gap: 4px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.dgroup:first-of-type { border-top: none; padding-top: 0; }
+.dhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; background: none; border: none; padding: 4px 0; text-align: left; width: 100%; }
+.dhead span:first-child { font-weight: 700; }
+.dhead span:first-child small { color: var(--brand); font-weight: 600; font-size: 0.78rem; margin-left: 6px; text-decoration: underline; }
+.dhead .num { font-weight: 700; color: var(--brand); }
+.dline { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; font-size: 0.9rem; }
+.dline span:first-child { overflow-wrap: anywhere; }
+body.lock { overflow: hidden; }
 
 
 .main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -153,7 +189,10 @@ textarea { resize: vertical; min-height: 64px; }
     </div>
     <div class="month-total">
       <div class="label" id="monthLabel">Jumlah bulan ini</div>
-      <div class="num" id="monthTotal">RM 0.00</div>
+      <div class="mt-row">
+        <div class="num" id="monthTotal">RM 0.00</div>
+        <button type="button" class="rec-btn" id="openRec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>Rekod perbelanjaan</button>
+      </div>
     </div>
   </header>
 
@@ -217,6 +256,23 @@ textarea { resize: vertical; min-height: 64px; }
         </div>
       </form>
     </section>
+  </div>
+</div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="recTitle" hidden>
+  <div class="sheet-in">
+    <div class="sheet-head">
+      <div>
+        <h2 id="recTitle">Rekod perbelanjaan</h2>
+        <div class="sheet-sub" id="recSub"></div>
+      </div>
+      <button type="button" class="close" id="closeRec" aria-label="Tutup">×</button>
+    </div>
+    <div class="sheet-nav">
+      <button type="button" id="recPrev" aria-label="Bulan sebelum">‹</button>
+      <div><strong id="recMonth"></strong><span class="num" id="recTotal"></span></div>
+      <button type="button" id="recNext" aria-label="Bulan seterusnya">›</button>
+    </div>
+    <div id="recBody"></div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -441,6 +497,69 @@ textarea { resize: vertical; min-height: 64px; }
     toast(wasEdit ? "Perubahan disimpan" : "Nota disimpan");
   });
 
+
+  // ---- Rekod perbelanjaan (senarai sebulan) ----
+  const BULAN_PENDEK = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+  function renderRec() {
+    const y = view.getFullYear(), m = view.getMonth();
+    const prefix = y + "-" + pad(m + 1) + "-";
+    const keys = Object.keys(store.days).filter((k) => k.startsWith(prefix) && store.days[k].length).sort().reverse();
+    let total = 0, count = 0;
+    const byCat = {};
+    keys.forEach((k) => store.days[k].forEach((e) => {
+      const a = Number(e.amt) || 0; total += a; count++;
+      byCat[e.cat] = (byCat[e.cat] || 0) + a;
+    }));
+    $("recMonth").textContent = BULAN[m] + " " + y;
+    $("recTotal").textContent = rm(total);
+    $("recSub").textContent = count ? count + " nota dalam " + keys.length + " hari" : "Tiada nota";
+    if (!count) {
+      $("recBody").innerHTML = '<div class="sec"><p class="empty" style="margin:0">Belum ada perbelanjaan direkod untuk ' + BULAN[m] + ' ' + y + '. Tutup halaman ini dan tekan mana-mana tarikh pada kalendar untuk mula.</p></div>';
+      return;
+    }
+    const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    const max = cats[0][1] || 1;
+    const catHtml = cats.map(([c, a]) =>
+      '<div class="catrow"><span class="nm">' + esc(c) + '</span><span class="num">' + rm(a) + ' <small style="color:var(--muted);font-weight:500">' + Math.round(a / total * 100) + '%</small></span>' +
+      '<div class="bar"><i style="width:' + Math.max(2, a / max * 100).toFixed(1) + '%"></i></div></div>').join("");
+    const dayHtml = keys.map((k) => {
+      const [yy, mm, dd] = k.split("-").map(Number);
+      const d = new Date(yy, mm - 1, dd);
+      const list = store.days[k];
+      return '<div class="dgroup"><button type="button" class="dhead" data-goto="' + k + '"><span>' + HARI[d.getDay()] + ', ' + dd + ' ' + BULAN_PENDEK[mm - 1] + '<small>Buka</small></span><span class="num">' + rm(sum(list)) + '</span></button>' +
+        list.map((e) => '<div class="dline"><span><span class="chip">' + esc(e.cat) + '</span>' + esc(e.item) + '</span><span class="num">' + rm(Number(e.amt)) + '</span></div>').join("") + '</div>';
+    }).join("");
+    $("recBody").innerHTML = '<div style="display:grid;gap:18px"><section class="sec"><h3>Ikut kategori</h3>' + catHtml + '</section>' +
+      '<section class="sec"><h3>Ikut tarikh</h3>' + dayHtml + '</section></div>';
+  }
+  let lastFocus = null;
+  function openRec() {
+    lastFocus = document.activeElement;
+    renderRec();
+    $("sheet").hidden = false; $("sheet").scrollTop = 0;
+    document.body.classList.add("lock");
+    try { history.pushState({ rec: 1 }, ""); } catch (e) {}
+    $("closeRec").focus();
+  }
+  function hideRec() {
+    $("sheet").hidden = true;
+    document.body.classList.remove("lock");
+    if (lastFocus) lastFocus.focus();
+  }
+  // Tutup melalui butang Kembali telefon juga
+  function closeRec() { if (history.state && history.state.rec) history.back(); else hideRec(); }
+  window.addEventListener("popstate", () => { if (!$("sheet").hidden) hideRec(); });
+  $("openRec").addEventListener("click", openRec);
+  $("closeRec").addEventListener("click", closeRec);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("sheet").hidden) closeRec(); });
+  $("recPrev").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); renderRec(); });
+  $("recNext").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); renderRec(); });
+  $("recBody").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-goto]"); if (!b) return;
+    const [yy, mm, dd] = b.dataset.goto.split("-").map(Number);
+    closeRec();
+    setTimeout(() => selectDay(new Date(yy, mm - 1, dd), true), 50);
+  });
 
   $("prevM").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); });
   $("nextM").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); });

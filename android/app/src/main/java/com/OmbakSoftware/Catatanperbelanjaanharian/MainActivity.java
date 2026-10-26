@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowInsets;
 import android.webkit.WebResourceRequest;
+import android.window.OnBackInvokedDispatcher;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -54,11 +55,28 @@ public class MainActivity extends Activity {
 
         setContentView(webView);
 
+        // Butang Kembali: tutup halaman dalam app (cth. Rekod perbelanjaan) dahulu, baru keluar.
+        if (Build.VERSION.SDK_INT >= 33) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
+        }
+
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
         } else {
             webView.loadUrl("file:///android_asset/index.html");
         }
+    }
+
+    private void handleBack() {
+        if (webView != null && webView.canGoBack()) webView.goBack();
+        else finish();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onBackPressed() {
+        handleBack();
     }
 
     @Override

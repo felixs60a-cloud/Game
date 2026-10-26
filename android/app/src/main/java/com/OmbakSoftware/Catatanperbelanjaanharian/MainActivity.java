@@ -1,4 +1,4 @@
-package com.felixs60a.bukubelanja;
+package com.OmbakSoftware.Catatanperbelanjaanharian;
 
 import android.app.Activity;
 import android.content.Intent;

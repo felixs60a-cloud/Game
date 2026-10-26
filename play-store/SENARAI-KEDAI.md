@@ -2,7 +2,7 @@
 
 ## Butiran app
 - **Nama app:** Buku Belanja Harian
-- **ID pakej:** `com.felixs60a.bukubelanja` (tidak boleh ditukar selepas diterbitkan)
+- **ID pakej:** `com.OmbakSoftware.Catatanperbelanjaanharian` (tidak boleh ditukar selepas diterbitkan)
 - **Kategori:** Kewangan
 - **Bahasa lalai:** Bahasa Melayu (ms-MY)
 

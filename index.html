@@ -54,20 +54,19 @@ header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content:
 header h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
 header h1 span { color: var(--brand); }
 .month-total { text-align: right; }
+@media (max-width: 480px) { .month-total { text-align: left; } }
 .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
 .month-total .num { font-size: 1.6rem; font-weight: 700; }
 
-.notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--brand-soft); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; }
-.notice button { background: none; border: 1px solid var(--brand); color: var(--brand); border-radius: 999px; padding: 4px 12px; font-weight: 600; font-size: 0.85rem; }
 
 .main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 820px) { .main { grid-template-columns: minmax(0, 1fr); } }
 
 .cal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
-.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
-.cal-head h2 { font-size: 1.3rem; font-weight: 600; }
+.cal-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.cal-head h2 { font-size: 1.2rem; font-weight: 600; white-space: nowrap; }
 .nav { display: flex; gap: 6px; }
-.nav button { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; min-width: 38px; height: 38px; padding: 0 10px; font-weight: 600; }
+.nav button { white-space: nowrap; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; min-width: 36px; height: 36px; padding: 0 8px; font-weight: 600; }
 .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .dow { text-align: center; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 0; }
 .dow.wkend { color: var(--danger); }
@@ -148,10 +147,6 @@ textarea { resize: vertical; min-height: 64px; }
     </div>
   </header>
 
-  <div class="notice" id="sampleNotice" hidden>
-    <span>Ini <strong>data contoh</strong> supaya anda nampak cara aplikasi berfungsi.</span>
-    <button type="button" id="clearSample">Padam data contoh</button>
-  </div>
 
   <div class="main">
     <section class="cal" aria-label="Kalendar">
@@ -226,35 +221,24 @@ textarea { resize: vertical; min-height: 64px; }
   const sum = (arr) => arr.reduce((s, e) => s + (Number(e.amt) || 0), 0);
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-  let store = { sample: false, days: {} };
+  let store = { days: {} };
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) { store = JSON.parse(raw); return; }
+      if (raw) store = JSON.parse(raw);
     } catch (e) {}
-    seed();
+    if (!store || typeof store.days !== "object") store = { days: {} };
+    // Buang data contoh daripada versi awal app
+    let changed = false;
+    Object.keys(store.days).forEach((k) => {
+      const kept = store.days[k].filter((e) => !e.sample);
+      if (kept.length !== store.days[k].length) changed = true;
+      if (kept.length) store.days[k] = kept; else delete store.days[k];
+    });
+    if ("sample" in store) { delete store.sample; changed = true; }
+    if (changed) save();
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
-
-  function seed() {
-    const t = new Date();
-    const add = (offset, items) => {
-      const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() - offset);
-      store.days[keyOf(d)] = items.map((i) => ({ id: uid(), ...i, sample: true }));
-    };
-    add(0, [
-      { item: "Nasi lemak + teh tarik", amt: 7.5, cat: "Makan", note: "Sarapan di gerai depan pejabat" },
-      { item: "Tambah nilai Touch 'n Go", amt: 50, cat: "Pengangkutan", note: "" }
-    ]);
-    add(1, [{ item: "Barang dapur mingguan", amt: 86.4, cat: "Barang dapur", note: "Beras 5kg, telur, sayur, ayam" }]);
-    add(3, [
-      { item: "Bil elektrik", amt: 112.3, cat: "Bil", note: "Bayar melalui aplikasi" },
-      { item: "Roti canai", amt: 4.2, cat: "Makan", note: "" }
-    ]);
-    add(5, [{ item: "Minyak kereta RON95", amt: 40, cat: "Pengangkutan", note: "" }]);
-    store.sample = true;
-    save();
-  }
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let view = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -295,12 +279,11 @@ textarea { resize: vertical; min-height: 64px; }
         (date.getTime() === today.getTime() ? " today" : "") +
         (date.getTime() === selected.getTime() ? " sel" : "");
       btn.setAttribute("aria-label", HARI[date.getDay()] + " " + d + " " + BULAN[m] + (total ? ", " + rm(total) : ""));
-      btn.innerHTML = '<span class="d">' + d + '</span>' + (total ? '<span class="amt">' + total.toFixed(2) + '</span>' : "");
+      btn.innerHTML = '<span class="d">' + d + '</span>' + (total ? '<span class="amt">' + Math.round(total) + '</span>' : "");
       btn.addEventListener("click", () => selectDay(date, true));
       grid.appendChild(btn);
     }
     $("monthTotal").textContent = rm(monthSum);
-    $("sampleNotice").hidden = !store.sample;
   }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
@@ -402,7 +385,7 @@ textarea { resize: vertical; min-height: 64px; }
     const rec = { item, amt: Math.round(amt * 100) / 100, cat: selCat, note };
     if (editingId) {
       const i = list.findIndex((e) => e.id === editingId);
-      if (i >= 0) list[i] = { ...list[i], ...rec, sample: false };
+      if (i >= 0) list[i] = { ...list[i], ...rec };
     } else {
       list.push({ id: uid(), ...rec });
     }
@@ -412,14 +395,6 @@ textarea { resize: vertical; min-height: 64px; }
     toast(wasEdit ? "Perubahan disimpan" : "Nota disimpan");
   });
 
-  $("clearSample").addEventListener("click", () => {
-    Object.keys(store.days).forEach((k) => {
-      store.days[k] = store.days[k].filter((e) => !e.sample);
-      if (!store.days[k].length) delete store.days[k];
-    });
-    store.sample = false;
-    save(); renderCal(); renderPanel(); toast("Data contoh dipadam");
-  });
 
   $("prevM").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); });
   $("nextM").addEventListener("click", () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); });
